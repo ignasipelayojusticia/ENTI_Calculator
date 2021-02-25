@@ -30,6 +30,8 @@ class CalculatorViewModel: CalculatorViewModelProtocol,
     
     @Published var display: String = "0"
 
+    @Published var buttonText: String = "AC"
+    
     private var operation: Calculation = Calculation(firstOperator: 0,
                                                      secondOperator: 0,
                                                      operation: .none)
@@ -51,10 +53,25 @@ class CalculatorViewModel: CalculatorViewModelProtocol,
         }
         
         self.display += digit
+        
+        if self.buttonText == "AC"
+        {
+            self.buttonText = "C"
+        }
     }
     
-    public func resetOperands() {
-        self.operation.reset()
+    public func resetOperands()
+    {
+        if self.buttonText == "C"
+        {
+            self.buttonText = "AC"
+        }
+        else
+        {
+            self.operation.reset()
+            self.buttonText = "AC"
+        }
+    
         self.display = "0"
     }
     

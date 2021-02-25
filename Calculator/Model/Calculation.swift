@@ -12,7 +12,8 @@ struct Calculation {
     var secondOperator: Int?
     var operation: CalculatorOperation
     
-    mutating func reset() {
+    mutating func reset()
+    {        
         self.firstOperator = 0
         self.secondOperator = nil
         self.operation = .none
