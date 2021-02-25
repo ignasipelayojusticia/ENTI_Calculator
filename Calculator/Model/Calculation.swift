@@ -13,7 +13,7 @@ struct Calculation {
     var operation: CalculatorOperation
     
     mutating func reset()
-    {        
+    {
         self.firstOperator = 0
         self.secondOperator = nil
         self.operation = .none
