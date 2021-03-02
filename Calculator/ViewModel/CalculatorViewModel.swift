@@ -33,21 +33,24 @@ class CalculatorViewModel: CalculatorViewModelProtocol,
     @Published var buttonText: String = "AC"
     
     private var operation: Calculation = Calculation(firstOperator: 0,
-                                                     secondOperator: 0,
+                                                     secondOperator: nil,
                                                      operation: .none)
     private var operationFinished: Bool = false
     
     public func addDigit(_ digit: String) {
         
-        self.buttonText = "C"
+        self.operationFinished = false
         
-        if self.operation.operation != .none && self.operation.secondOperator == nil {
+        if self.operation.operation != .none && self.operation.secondOperator == nil
+        {
             self.operation.secondOperator = 0
             self.display = digit
+            self.buttonText = "C"
             return
         }
         guard self.display != "0" else {
             self.display = digit
+            self.buttonText = "C"
             return
         }
                 
@@ -60,42 +63,81 @@ class CalculatorViewModel: CalculatorViewModelProtocol,
     
     public func resetOperands()
     {
+        // Button AC no operation
+
+        // Button C and no operation
+        
+        // Button C and operation
+        
+        // Button C, operation and second operand
+        
+        // Button AC and operation
+        
         if self.buttonText == "C"
         {
             self.buttonText = "AC"
+            self.operation.operation = .none
+            
+            if self.operation.firstOperator.truncatingRemainder(dividingBy: 1) == 0
+            {
+                let intDisplay = Int (self.operation.firstOperator)
+                self.display = String (intDisplay)
+                return
+            }
+    
+            self.display = String (self.operation.firstOperator).replacingOccurrences(of: ".", with: ",")
         }
         else
         {
             self.operation.reset()
             self.buttonText = "AC"
+            self.display = "0"
         }
+    }
     
+    public func perform(operation: CalculatorOperation)
+    {
+        var replaced = String(display).replacingOccurrences(of: ",", with: ".")
+        
+        guard let value = Double(replaced) else { return }
+        
+        switch operation
+        {
+            case .swipeSign:
+                self.display = String(-value)
+            case .equal:
+                if !self.operationFinished
+                {
+                    self.operation.secondOperator = value
+                }
+                guard let result = calculateResult(for: self.operation) else { return }
+                
+                if result.truncatingRemainder(dividingBy: 1) == 0
+                {
+                    let intResult = Int (result)
+                    replaced = String (intResult)
+                }
+                else
+                {
+                    replaced = String (result).replacingOccurrences(of: ".", with: ",")
+                }
+                
+                
+                self.display = replaced
+ 
+                self.operation.firstOperator = result
+                self.operationFinished = true
+                return
+            default:
+                self.operation.firstOperator = value
+                self.operation.operation = operation
+        }
+        
         self.display = "0"
     }
     
-    public func perform(operation: CalculatorOperation) {
-        guard let value = Int(display) else { return }
-        
-        switch operation {
-        case .swipeSign:
-            self.display = String(-value)
-        case .equal:
-            self.operation.secondOperator = value
-            guard let result = calculateResult(for: self.operation) else { return }
-            self.display = String(result)
-            self.operation.reset()
-            self.operation.firstOperator = result
-            self.operationFinished = true
-            return
-        default:
-            self.operation.firstOperator = value
-            self.operation.operation = operation
-        }
-        
-        self.display = "0"
-    }
-    
-    func calculateResult(for values: Calculation) -> Int? {
+    func calculateResult(for values: Calculation) -> Double?
+    {
         guard let secondOperator = values.secondOperator else { return nil }
         switch values.operation {
         case .addition:
@@ -110,7 +152,7 @@ class CalculatorViewModel: CalculatorViewModelProtocol,
             let base = Double(secondOperator)
             let percentage = Double(operation.firstOperator) / 100
             let result = base * percentage
-            return Int(result)
+            return Double(result)
         default:
             return nil
         }
